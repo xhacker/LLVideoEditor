@@ -13,5 +13,5 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/omergul123/LLVideoEditor.git", :tag => "v1.0.0" }
   s.source_files = 'LLVideoEditor/**/*.{h,m}'
   s.requires_arc = true
-  s.framework = 'AVFoundation'
+  s.framework    = 'AVFoundation'
 end

@@ -16,6 +16,8 @@
 #import "LLAddLayerCommand.h"
 #import "LLAddAudioCommand.h"
 
+#import "SDAVAssetExportSession.h"
+
 @interface LLVideoEditor()
 @property (strong, nonatomic) LLVideoData *videoData;
 @property (strong, nonatomic) AVAssetExportSession *exportSession;
@@ -151,6 +153,49 @@
                 _videoData = [[LLVideoData alloc] initWithAsset:asset];
                 _commands = [NSMutableArray array];
                 completionBlock(_exportSession);
+            });
+        }
+    }];
+}
+
+- (void)exportLowQualityToUrl:(NSURL *)exportUrl completionBlock:(void (^)())completionBlock {
+    
+    [self applyCommands];
+
+    SDAVAssetExportSession *encoder = [SDAVAssetExportSession.alloc initWithAsset:[self.videoData.composition copy]];
+    encoder.outputFileType = AVFileTypeMPEG4;
+    encoder.outputURL = exportUrl;
+    encoder.shouldOptimizeForNetworkUse = YES;
+    encoder.videoSettings = @{
+        AVVideoCodecKey: AVVideoCodecH264,
+        AVVideoWidthKey: @640,
+        AVVideoHeightKey: @640,
+        AVVideoCompressionPropertiesKey: @{
+            AVVideoAverageBitRateKey: @1100000,
+            AVVideoProfileLevelKey: AVVideoProfileLevelH264High40,
+        },
+    };
+    encoder.audioSettings = @
+    {
+        AVFormatIDKey: @(kAudioFormatMPEG4AAC),
+        AVNumberOfChannelsKey: @2,
+        AVSampleRateKey: @44100,
+        AVEncoderBitRateKey: @96000,
+    };
+    
+    // delete the existing file
+    NSError *error = nil;
+    if ([[NSFileManager defaultManager] isDeletableFileAtPath:exportUrl.path]) {
+        BOOL success = [[NSFileManager defaultManager] removeItemAtPath:exportUrl.path error:&error];
+        if (!success) {
+            NSLog(@"Error removing file at path: %@", error.localizedDescription);
+        }
+    }
+
+    [encoder exportAsynchronouslyWithCompletionHandler:^{
+        if (completionBlock) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completionBlock();
             });
         }
     }];

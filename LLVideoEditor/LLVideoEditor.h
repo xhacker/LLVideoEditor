@@ -79,6 +79,9 @@ typedef enum : NSUInteger {
          presetName:(NSString *)presetName optimizeForNetworkUse:(BOOL)optimizeForNetworkUse
      outputFileType:(NSString*)outputFileType completionBlock:(void (^)(AVAssetExportSession *session))completionBlock;
 
+/* Export the edited video for Arrow Top */
+- (void)exportLowQualityToUrl:(NSURL *)exportUrl completionBlock:(void (^)())completionBlock;
+
 /**
  * Size of the video.
  */
